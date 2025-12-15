@@ -2,48 +2,48 @@ global const currDIR::String = @__DIR__
 
 function passfunc(filedir::String)
     open(filedir) do file
+        let
+            counter::UInt = 0
+            dial::Int = 50
+            sign::Int = 0
+            tempdial::Int = 0
+            currLine::String = ""
+            value::Int = 0
+            while !eof(file)
+                currLine = readline(file)
+                value = parse(Int,currLine[2:end])
+                
 
-        counter = 0
-        dial = 50
-
-        while !eof(file)
-            currLine = readline(file)
-            value = parse(Int,currLine[2:end])
-            sign = 0
-
-            #Lol this bad fix fr fr
-            if currLine[1] == 'L'
-                sign = -1
-            elseif currLine[1] == 'R'
-                sign = 1
-            else
-                @error "Not L or R???"
-            end
-
-            for i = 1:value
-                dial += 1*sign
-                if dial == 0 || dial == 100
-                    counter += 1
+                if value >= 100
+                    counter += UInt(floor(abs(value/100)))
+                    value = mod(value,100)
                 end
-                dial = mod(dial,100)
+
+                if currLine[1] == 'L'
+                    value = -value
+                elseif currLine[1] != 'R'
+                    @error "Not L or R???"
+                end
+                
+                tempdial = dial + value
+
+                if (tempdial >=100 || tempdial <=0) && dial != 0
+                    counter += UInt(1)
+                end
+
+                dial = mod(tempdial,100)
+
             end
-            #println(counter)
-            #if dial == 0
-            #    counter += 1
-            #end
+            return counter
         end
-        return counter
     end
 end
 
 function run()
-    test = passfunc("$currDIR/day1ex.txt")
-    if test == 6
-        println("Test ex passed: $test")
-    end
+    test::UInt = 0
     @time test = passfunc("$currDIR/day1.txt")
     if test == 6738
-        println("Test real passed: $test")
+        println("Passed: $test = 6738")
     end
     return nothing
 end
