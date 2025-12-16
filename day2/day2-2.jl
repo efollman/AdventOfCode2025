@@ -2,10 +2,11 @@ global const currDIR::String = @__DIR__
 
 function run()
     @time val = invalidIDs("$currDIR/day2.txt")
-    if val == 33832678380
-        print("✓ Test Passed: $val == 33832678380\n")
+    shouldbe::Int = 33832678380
+    if val == shouldbe
+        print("✓ Test Passed: $val == $shouldbe\n")
     else
-        print("X Test Failed: $val != 33832678380\n")
+        print("X Test Failed: $val != $shouldbe\n")
     end
     return nothing
 end
