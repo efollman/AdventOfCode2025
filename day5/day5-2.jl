@@ -27,7 +27,6 @@ function freshNum(filepath::String)
             else
                 @error "Parsed Too Far"
             end
-
         end
     end
 
