@@ -12,7 +12,7 @@ function run()
 end
 
 function parseProblems(filepath::String)
-    numbers::Matrix{Int} = Matrix{Bool}(undef,0,0)
+    numbers::Matrix{Int} = Matrix{Int}(undef,0,0)
     operators::Vector{Char} = []
     open(filepath) do file
         let
