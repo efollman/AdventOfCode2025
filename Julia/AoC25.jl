@@ -1,4 +1,5 @@
 global const inputDIR = "$(@__DIR__)/../Input"
+global const inputExDIR = "$(@__DIR__)/../InputEx"
 global const scriptDIR = "$(@__DIR__)/days"
 
 function AoC25()
