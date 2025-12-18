@@ -2,7 +2,7 @@ function day9()
 
     function run()
         println("Running day9:")
-        @time val = maxRectangle("$inputDIR/day9.txt")
+        @time val = maxRectangle("$inputExDIR/day9.txt")
         shouldbe = 4777816465
         if val == shouldbe
             print("✓ Test Passed: $val == $shouldbe\n")
@@ -43,22 +43,124 @@ function day9()
         return A
     end
 
-    function maxRectangle(filepath::String)
-        points::Matrix{UInt} = parsePoints(filepath)
-        maxArea::UInt = 0
-        currArea::UInt = 0
-        ##Assume clockwise loop from reading first few points
-        #Test Points i,i+1,i+2 (withMod) to see if made rectangle would be green, already verified points are corner only
-        for i in 1:size(points,1)
-            for j in (i+1):size(points,1)
-                currArea = recArea(points[i,:],points[j,:])
-                if currArea > maxArea
-                    maxArea = currArea
+    function compressPoints(points::Matrix{UInt})
+        xD::Dict{UInt,UInt} = Dict()
+        yD::Dict{UInt,UInt} = Dict()
+        xV::Vector{UInt} = points[:,1]
+        yV::Vector{UInt} = points[:,2]
+        sort!(xV)
+        sort!(yV)
+        n::UInt = 1
+        for i::UInt in eachindex(xV)
+            if i == 1
+                xD[xV[i]] = n
+                n += 1
+            elseif xV[i-1] == xV[i]
+                continue
+            else
+                xD[xV[i]] = n
+                n += 1
+            end
+        end
+        n = 1
+        for i::UInt in eachindex(yV)
+            if i == 1
+                yD[yV[i]] = n
+                n += 1
+            elseif yV[i-1] == yV[i]
+                continue
+            else
+                yD[yV[i]] = n
+                n += 1
+            end
+        end
+        compPoints::Matrix{UInt} = points
+        for i::UInt in eachindex(compPoints[:,1])
+            compPoints[i,1] = xD[points[i,1]]
+        end
+        for i::UInt in eachindex(compPoints[:,2])
+            compPoints[i,2] = yD[points[i,2]]
+        end
+        return compPoints
+    end
+
+    function createBooleanMat(points::Matrix{UInt})
+        xsize::UInt = maximum(points[:,1])
+        ysize::UInt = maximum(points[:,1])
+        boolMat::Matrix{Bool} = fill(false,xsize,ysize)
+        i2::UInt = 0
+        for i::UInt in eachindex(points[:,1])
+            if i == size(points,1)
+                i2 = UInt(1)
+            else
+                i2 = i+1
+            end
+            if points[i,2] == points[i2,2]
+                if points[i,1] < points[i2,1]
+                    boolMat[points[i,1]:points[i2,1],points[i,2]] .= true
+                elseif points[i,1] > points[i2,1]
+                    boolMat[points[i2,1]:points[i,1],points[i,2]] .= true
+                end
+            elseif points[i,1] == points[i2,1]
+                if points[i,2] < points[i2,2]
+                    boolMat[points[i,1],points[i,2]:points[i2,2]] .= true
+                elseif points[i,2] > points[i2,2]
+                    println("Mark")
+                    println("$(points[i,1]) $(points[i2,2]) $(points[i,2]) ")
+                    println(boolMat[points[i,1],points[i2,2]:points[i,2]]) 
+                    println(typeof(points[i,1]))
+                    println(typeof(points[i2,1]))
+                    println(typeof(points[i2,1]))
+                    println(typeof(boolMat))
+                    #boolMat[points[i,1],points[i2,2]:points[i,2]] .= true #There is an error here and i cannot for the life of me figure this out
+                    boolMat[7,1:3] .=true
                 end
             end
         end
 
+
+
+        for row in eachrow(boolMat)
+            for bool in row
+                if bool == true
+                    print("X")
+                else
+                    print(".")
+                end
+            end
+            println()
+        end
+        return boolMat
+    end
+
+    function isGreen()
+    end
+
+    function maxRectangle(filepath::String)
+        points::Matrix{UInt} = parsePoints(filepath)
+        maxArea::UInt = 0
+        currArea::UInt = 0
+        i2::UInt = 0
+        i3::UInt = 0
+        for i::UInt in 1:size(points,1)
+            #for j (all points again)
+            #i2 = mod(i+1-1,size(points,1))+1
+            #i3 = mod(i+2-1,size(points,1))+1
+            currArea = recAreaIfGreen(points[i,:],points[i2,:],points[i3,:])###Fixhere
+            if currArea > maxArea
+                maxArea = currArea
+            end
+
+        end
+
         return maxArea
     end
-    run()
+    #run()
+    p = parsePoints("$inputExDIR/day9.txt")
+    return createBooleanMat(p)
+    println(p)
+    p = compressPoints(p)
+    println(p)
+    println()
+
 end
