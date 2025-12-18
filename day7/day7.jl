@@ -2,7 +2,7 @@ global const DIR::String = "$(@__DIR__)/day7.txt"
 
 function run()
     @time val = splitNum(DIR)
-    shouldbe = 1499
+    shouldbe = 24743903847942
     if val == shouldbe
         print("✓ Test Passed: $val == $shouldbe\n")
     else
@@ -35,36 +35,36 @@ end
 
 function splitBeams(filepath::String)
     M = parseCharMAT(filepath)
-    beamLine::Vector{Bool} = Vector{Bool}(undef,size(M,2)) 
-    beamLine .= false
-    splitNum::UInt = 0
+    beamLine::Vector{UInt} = Vector{UInt}(undef,size(M,2)) 
+    beamLine .= 0
 
     for i = 1:size(M,1)
         if i == 1
             for j = 1:size(M,2)
                 if M[i,j] == 'S'
-                    beamLine[j] = true
+                    beamLine[j] = 1
                     break
                 end
             end
         else
             for j = 2:size(M,2)-1
-                if M[i,j] == '^' && beamLine[j] == true
-                    splitNum += 1
-                    beamLine[j] = false
-                    beamLine[j-1] = true
-                    beamLine[j+1] = true
+                if M[i,j] == '^' && beamLine[j] > 0
+                    beamLine[j-1] += beamLine[j]
+                    beamLine[j+1] += beamLine[j]
+                    beamLine[j] = 0
                 end
             end
             #=for j = 1:size(M,2)
-                if beamLine[j] == true
+                if beamLine[j] > 0
                     M[i,j] = '|'
                 end
             end=#
         end
-
+        
         
     end
+
+    splitNum = sum(beamLine)
 
     return M, splitNum
 end

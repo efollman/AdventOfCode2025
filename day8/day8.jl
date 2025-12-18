@@ -1,5 +1,4 @@
 global const DIR::String = "$(@__DIR__)/day8.txt"
-global const iterations::UInt = 1000
 
 struct point
     x::UInt
@@ -8,8 +7,8 @@ struct point
 end
 
 function run()
-    @time val = multTop3(DIR,iterations)
-    shouldbe = 54600
+    @time val = last2(DIR)
+    shouldbe = 107256172
     if val == shouldbe
         print("✓ Test Passed: $val == $shouldbe\n")
     else
@@ -54,18 +53,19 @@ function distanceMatrix(filepath::String)
 
 
 
-    return distanceMatrix
+    return distanceMatrix, v
 end
 
-function connectPoints(filepath::String, iter::UInt)
-    dM::Matrix{UInt} = distanceMatrix(filepath)
+function connectPoints(filepath::String)
+    dM::Matrix{UInt},pointVec::Vector{point} = distanceMatrix(filepath)
     circuits::Vector{Vector{UInt}} = Vector{Vector{UInt}}[]
     nextlowest::CartesianIndex = CartesianIndex(0,0)
     circuitN::UInt = 0
     circuitN2::UInt = 0
     n::UInt = 1
+    last2boxes::Tuple{point,point} = (point(0,0,0),point(0,0,0))
 
-    while n <= iter
+    while true
         nextlowest = argmin(dM)
         dM[nextlowest] = typemax(UInt64)
         circuitN, _ = checkCircuitLoc(circuits,UInt(nextlowest[1]))
@@ -79,12 +79,12 @@ function connectPoints(filepath::String, iter::UInt)
                 push!(circuits[circuitN],nextlowest[2])
             elseif circuitN < circuitN2
                 for point in circuits[circuitN2]
-                    push!(circuits[circuitN],point)
+                    push!(circuits[circuitN],point) ##appending vectors together somehow is likely faster
                 end
                 deleteat!(circuits,circuitN2)
             elseif circuitN2 < circuitN
                 for point in circuits[circuitN]
-                    push!(circuits[circuitN2],point)
+                    push!(circuits[circuitN2],point) ##appending vectors together somehow is likely faster
                 end
                 deleteat!(circuits,circuitN)
             elseif circuitN == circuitN2
@@ -96,9 +96,13 @@ function connectPoints(filepath::String, iter::UInt)
         circuitN = 0
         circuitN2 = 0
         n += 1
+        if length(circuits) == 1 && length(circuits[1]) == size(dM,1)
+            last2boxes = (pointVec[nextlowest[1]],pointVec[nextlowest[2]])
+            break
+        end
     end
 
-    return circuits
+    return last2boxes
 
 end
 
@@ -122,17 +126,10 @@ function checkCircuitLoc(c::Vector{Vector{UInt}},iIn::UInt)
     return iOut, i2Out
 end
 
-function multTop3(filepath::String,iter::Real)
-    circuits = connectPoints(filepath,UInt(iter))
-    circuitLengths::Vector{UInt} = Vector{UInt}[]
-    prod3::UInt = 0
-    for c in circuits
-        push!(circuitLengths,UInt(length(c)))
-    end
-    sort!(circuitLengths)
-    
-    prod3 = prod(circuitLengths[end-2:end])
-    return prod3
+function last2(filepath::String)
+    last2boxes::Tuple{point,point} = connectPoints(filepath)
+    multX = prod([last2boxes[1].x,last2boxes[2].x])
+    return multX
 end
 
 run()

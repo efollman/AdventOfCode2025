@@ -2,7 +2,7 @@ global const currDIR::String = @__DIR__
 
 function run()
     @time val = solveProblems("$currDIR/day6.txt")
-    shouldbe = 6957525317641
+    shouldbe = 13215665360076
     if val == shouldbe
         print("✓ Test Passed: $val == $shouldbe\n")
     else
@@ -12,74 +12,52 @@ function run()
 end
 
 function parseProblems(filepath::String)
-    numbers::Matrix{Int} = Matrix{Int}(undef,0,0)
-    operators::Vector{Char} = []
+    #Part two is a bruh moment
+    allLines::Vector{String} = Vector{String}[]
     open(filepath) do file
-        let
-            currLine::String = ""
-            currLineSplit::Vector{String} = []
-            currLineNums::Vector{Int} = []
-            i::UInt = 1
-
-            while !eof(file)
-                currLine = readline(file)
-                currLineSplit = split(currLine," ")
-                filter!(!isempty,currLineSplit)
-                
-                if i == 1
-                    numbers = Matrix{Int}(undef,1,length(currLineSplit))
-
-                    for str in currLineSplit
-                        push!(currLineNums,parse(Int,str))
-                    end
-
-                    numbers[i,:] = currLineNums
-
-                elseif all(isdigit,currLineSplit[1])
-                    (_,width) = size(numbers)
-
-                    for str in currLineSplit
-                        push!(currLineNums,parse(Int,str))
-                    end
-
-
-                    if length(currLineNums) != width
-                        @error "Line width mismatch"
-                    end
-
-                    numbers = vcat(numbers,transpose(currLineNums))
-                else
-                    for str in currLineSplit
-                        push!(operators,str[1])
-                    end
-                end
-
-                i += 1
-                currLineNums = []
-            end
+        while !eof(file)
+            push!(allLines,readline(file))
         end
     end
-    return numbers, operators
+
+    strLen::UInt = length(allLines[1])
+    charMat::Matrix{Char} = Matrix{Char}(undef,length(allLines),length(allLines[1]))
+    for i in eachindex(allLines)
+        if length(allLines[i]) != strLen
+            @error "Line Length mismatch in parse"
+        end
+        charMat[i,:] = collect(allLines[i])
+    end
+    
+
+    return charMat
 end
 
 function solveProblems(filepath::String)
+    totalAnswer::UInt = 0
 
-    numbers::Matrix{Int}, operators::Vector{Char} = parseProblems(filepath)
+    charMat::Matrix{Char} = parseProblems(filepath)
 
-    _,y = size(numbers)
+    currentProblem::Vector{Int} = Vector{Int}[]
+    for j = size(charMat,2):-1:1
 
-    numVec::Vector{Int} = []
-    lineAnswer::Int = 0
-    totalAnswer::Int = 0
-
-    for j = 1:y
-        numVec = numbers[:,j]
-        if operators[j] == '*'
-            lineAnswer = prod(numVec)
-        elseif operators[j] == '+'
-            lineAnswer = sum(numVec)
+        if all(charMat[:,j] .== ' ')
+            currentProblem = Vector{Int}[]
+            continue
         end
-        totalAnswer += lineAnswer
+
+        push!(currentProblem,parse(Int,join(charMat[1:end-1,j])))
+
+        if charMat[end,j] == ' '
+            continue
+        elseif charMat[end,j] == '*'
+            totalAnswer += prod(currentProblem)
+        elseif charMat[end,j] == '+'
+            totalAnswer += sum(currentProblem)
+        else
+            @error "Operator Logic Problem"
+        end
+
     end
 
     return totalAnswer

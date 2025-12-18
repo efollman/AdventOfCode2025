@@ -1,8 +1,14 @@
 global const currDIR::String = @__DIR__
 
 function run()
-    val = invalidIDs("$currDIR/day2.txt")
-    return val
+    @time val = invalidIDs("$currDIR/day2.txt")
+    shouldbe::Int = 33832678380
+    if val == shouldbe
+        print("✓ Test Passed: $val == $shouldbe\n")
+    else
+        print("X Test Failed: $val != $shouldbe\n")
+    end
+    return nothing
 end
 
 function invalidIDs(filepath::String)
@@ -29,21 +35,13 @@ function invalidIDs(filepath::String)
 
     stri::String = ""
     runTotal::Int = 0
-    strleng::Int = 0
-    midpoint::Int = 0
 
     for range in rangeVec
         for i in range
             stri = string(i)
-            if !iseven(length(stri))
-                continue
-            else
-                strleng = length(stri)
-                midpoint = Int(strleng/2)
-                if stri[1:midpoint] == stri[midpoint+1:end]
-                    runTotal += i
-                end
-            end
+            if isrepeating(stri)
+                runTotal += i
+            end           
         end
     end
 
@@ -51,4 +49,54 @@ function invalidIDs(filepath::String)
     
 end
 
-val = run()
+function isrepeating(str::String)
+    tf::Bool = false
+    leng::Int = length(str)
+
+    facVec::Vector{Int} = findFactors(leng)
+
+    for i in facVec
+        if isrepeatingN(str,i) == true
+            tf = true
+            break
+        end
+    end
+
+    return tf
+end
+
+function isrepeatingN(str::String,N::Int)
+    tf::Bool = false
+    len::Int = length(str)
+    repNum::Int = len ÷ N
+    compStr::String = ""
+    for i = 1:repNum
+        if i == 1
+            compStr = str[1:N]
+        else
+            if compStr == str[Int((i-1)*N+1):Int(i*N)]
+                if i == repNum
+                    tf = true
+                    break
+                end
+                continue
+            else
+                tf = false
+                break
+            end
+        end
+    end
+    return tf
+end
+
+function findFactors(x::Int)
+    facVec::Vector{Int} = []
+    for i = 1:x
+        if x%i == 0
+            push!(facVec,i)
+        end
+    end
+    return facVec
+end
+
+run()

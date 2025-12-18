@@ -2,7 +2,7 @@ global const currDIR::String = @__DIR__
 
 function run()
     @time val = accessablePaper("$currDIR/day4.txt")
-    shouldbe = 1551
+    shouldbe = 9784
     if val == shouldbe
         print("✓ Test Passed: $val == $shouldbe\n")
     else
@@ -56,17 +56,31 @@ function accessablePaper(filepath::String)
     (x::UInt,y::UInt) = size(layout)
 
     accessibleN::UInt = 0
+    oldN::UInt = 0
 
-    for i = 1:x
-        for j = 1:y
-            if layout[i,j] == true
-                irange,jrange = findAdjacent(i,j,x,y)
-                if sum(layout[irange,jrange])-1 < 4
-                    accessibleN += 1
+    flag::Bool = false
+    while flag == false
+
+        for i = 1:x
+            for j = 1:y
+                if layout[i,j] == true
+                    irange,jrange = findAdjacent(i,j,x,y)
+                    if sum(layout[irange,jrange])-1 < 4
+                        accessibleN += 1
+                        layout[i,j] = false
+                    end
                 end
             end
         end
+
+        if accessibleN == oldN
+            flag = true
+            break
+        end
+
+        oldN = accessibleN
     end
+
     return accessibleN
 end
 

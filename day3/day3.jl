@@ -2,7 +2,7 @@ global const currDIR::String = @__DIR__
 
 function run()
     @time val = findJoltage("$currDIR/day3.txt")
-    shouldbe::UInt = 17263
+    shouldbe = 170731717900423
     if val == shouldbe
         print("✓ Test Passed: $val == $shouldbe\n")
     else
@@ -36,7 +36,7 @@ end
 
 function findBankJoltage(vec::Vector{UInt})
 
-    digitsNeeded::UInt = 2
+    digitsNeeded::UInt = 12
     currDigit::UInt = 1
     modVec::Vector{UInt} = fill(0,digitsNeeded)
 
