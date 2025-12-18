@@ -105,15 +105,25 @@ function day9()
                 if points[i,2] < points[i2,2]
                     boolMat[points[i,1],points[i,2]:points[i2,2]] .= true
                 elseif points[i,2] > points[i2,2]
+                    p1 = points[i,1]
+                    p2 = points[i2,2]
+                    p3 = points[i,2]
                     println("Mark")
-                    println("$(points[i,1]) $(points[i2,2]) $(points[i,2]) ")
-                    println(boolMat[points[i,1],points[i2,2]:points[i,2]]) 
-                    println(typeof(points[i,1]))
-                    println(typeof(points[i2,1]))
-                    println(typeof(points[i2,1]))
+                    println("$p1 $p2 $p3 ")
+                    println(typeof(p1))
+                    println(typeof(p2))
+                    println(typeof(p3))
                     println(typeof(boolMat))
+                    
+                    
+                    #boolMat[UInt64(7),UInt64(1):UInt64(3)] .= true
+                    println("mark2")
+
+                    println(boolMat[p1,p2:p3]) 
+                    
+                    boolMat[Int(p1),Int(p2):Int(p3)] .= true #Wut
+                    println("Mark 3")
                     #boolMat[points[i,1],points[i2,2]:points[i,2]] .= true #There is an error here and i cannot for the life of me figure this out
-                    boolMat[7,1:3] .=true
                 end
             end
         end
