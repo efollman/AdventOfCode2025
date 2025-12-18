@@ -1,9 +1,15 @@
+struct point
+    x::UInt
+    y::UInt
+    z::UInt
+end
+
+
 function day7()
-    DIR::String = "$(@__DIR__)/../Input/day7.txt"
 
     function run()
-        println("Running Day 7:")
-        @time val = splitNum(DIR)
+        println("Running day7:")
+        @time val = splitNum("$inputDIR/day7.txt")
         shouldbe = 24743903847942
         if val == shouldbe
             print("✓ Test Passed: $val == $shouldbe\n")
