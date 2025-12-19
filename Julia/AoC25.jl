@@ -19,9 +19,7 @@ function runAllDays()
     day6()
     day7()
     day8() #Really Slooooow
+    day9()
 end
-
-#working on part 2
-day9()
 
 #work on factoring out tests separately from day scripts

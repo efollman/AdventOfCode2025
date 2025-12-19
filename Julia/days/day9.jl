@@ -2,8 +2,8 @@ function day9()
 
     function run()
         println("Running day9:")
-        @time val = maxRectangle("$inputExDIR/day9.txt")
-        shouldbe = 4777816465
+        @time val = maxRectangle("$inputDIR/day9.txt")
+        shouldbe = 1410501884
         if val == shouldbe
             print("✓ Test Passed: $val == $shouldbe\n")
         else
@@ -74,14 +74,14 @@ function day9()
                 n += 1
             end
         end
-        compPoints::Matrix{UInt} = points
+        compPoints::Matrix{UInt} = copy(points)
         for i::UInt in eachindex(compPoints[:,1])
             compPoints[i,1] = xD[points[i,1]]
         end
         for i::UInt in eachindex(compPoints[:,2])
             compPoints[i,2] = yD[points[i,2]]
         end
-        return compPoints
+        return compPoints, xD, yD
     end
 
     function createBooleanMat(points::Matrix{UInt})
@@ -97,81 +97,74 @@ function day9()
             end
             if points[i,2] == points[i2,2]
                 if points[i,1] < points[i2,1]
-                    boolMat[points[i,1]:points[i2,1],points[i,2]] .= true
+                    boolMat[points[i,1]:Int64(points[i2,1]),Int64(points[i,2])] .= true
                 elseif points[i,1] > points[i2,1]
-                    boolMat[points[i2,1]:points[i,1],points[i,2]] .= true
+                    boolMat[points[i2,1]:Int64(points[i,1]),Int64(points[i,2])] .= true
                 end
             elseif points[i,1] == points[i2,1]
                 if points[i,2] < points[i2,2]
-                    boolMat[points[i,1],points[i,2]:points[i2,2]] .= true
+                    boolMat[points[i,1],Int64(points[i,2]):Int64(points[i2,2])] .= true
                 elseif points[i,2] > points[i2,2]
-                    p1 = points[i,1]
-                    p2 = points[i2,2]
-                    p3 = points[i,2]
-                    println("Mark")
-                    println("$p1 $p2 $p3 ")
-                    println(typeof(p1))
-                    println(typeof(p2))
-                    println(typeof(p3))
-                    println(typeof(boolMat))
-                    println(size(boolMat))
-                    
-                    
-                    #boolMat[UInt64(7),UInt64(1):UInt64(3)] .= true
-                    println("mark2")
-
-                    println(boolMat[p1,p2:p3]) 
-                    
-                    boolMat[p1,p2:p3] .= true #Wut
-                    println("Mark 3")
                     #boolMat[points[i,1],points[i2,2]:points[i,2]] .= true #There is an error here and i cannot for the life of me figure this out
+                    boolMat[points[i,1],Int64(points[i2,2]):Int64(points[i,2])] .= true #Goofy language bug lol ahah
                 end
             end
         end
 
+        boolMatFill::Matrix{Bool} = fill(false,size(boolMat,1),size(boolMat,2))
 
-
-        for row in eachrow(boolMat)
-            for bool in row
-                if bool == true
-                    print("X")
-                else
-                    print(".")
-                end
+        function boundaryFill(x::Int,y::Int) #This only works because the area withing the shape is continuous and boundry never touches itself could maybe be fixed by spacing out compressed points by 2 to gaurantee this
+            if boolMat[x, y] != true && boolMatFill[x, y] != true
+                boolMatFill[x,y] = true
+                boundaryFill(x + 1, y)
+                boundaryFill(x, y + 1)
+                boundaryFill(x - 1, y)
+                boundaryFill(x, y - 1)
             end
-            println()
+            return nothing
         end
-        return boolMat
+
+        boundaryFill(100,100) #determined based on chart of compressed points won't work for example data could random seed and determine which is right by comparing the two different outputs on the edge, would be very slow though
+
+        for i in eachindex(boolMat)
+            if boolMat[i] == true
+                boolMatFill[i] = true
+            end
+        end
+
+        return boolMatFill
     end
 
-    function isGreen()
+    
+    function isGreen(p1::Vector{UInt},p2::Vector{UInt},boolMat::Matrix{Bool},xD::Dict{UInt,UInt},yD::Dict{UInt,UInt})
+        x1::UInt = xD[minimum([p1[1],p2[1]])]
+        y1::UInt = yD[minimum([p1[2],p2[2]])]
+        x2::UInt = xD[maximum([p1[1],p2[1]])]
+        y2::UInt = yD[maximum([p1[2],p2[2]])]
+
+        return all(boolMat[x1:x2,y1:y2] .== true)
+
     end
 
     function maxRectangle(filepath::String)
         points::Matrix{UInt} = parsePoints(filepath)
+        compPoints::Matrix{UInt}, xD::Dict{UInt,UInt}, yD::Dict{UInt,UInt} = compressPoints(points)
+        boolMat::Matrix{Bool} = createBooleanMat(compPoints)
+
         maxArea::UInt = 0
         currArea::UInt = 0
-        i2::UInt = 0
-        i3::UInt = 0
         for i::UInt in 1:size(points,1)
-            #for j (all points again)
-            #i2 = mod(i+1-1,size(points,1))+1
-            #i3 = mod(i+2-1,size(points,1))+1
-            currArea = recAreaIfGreen(points[i,:],points[i2,:],points[i3,:])###Fixhere
-            if currArea > maxArea
-                maxArea = currArea
+            for j in i+1:size(points,1)
+                currArea = recArea(points[i,:],points[j,:])
+                if currArea > maxArea
+                    if isGreen(points[i,:],points[j,:],boolMat,xD,yD)
+                        maxArea = currArea
+                    end
+                end
             end
-
         end
 
         return maxArea
     end
-    #run()
-    p = parsePoints("$inputExDIR/day9.txt")
-    return createBooleanMat(p)
-    println(p)
-    p = compressPoints(p)
-    println(p)
-    println()
-
+    run()
 end
