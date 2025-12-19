@@ -114,6 +114,7 @@ function day9()
                     println(typeof(p2))
                     println(typeof(p3))
                     println(typeof(boolMat))
+                    println(size(boolMat))
                     
                     
                     #boolMat[UInt64(7),UInt64(1):UInt64(3)] .= true
@@ -121,7 +122,7 @@ function day9()
 
                     println(boolMat[p1,p2:p3]) 
                     
-                    boolMat[Int(p1),Int(p2):Int(p3)] .= true #Wut
+                    boolMat[p1,p2:p3] .= true #Wut
                     println("Mark 3")
                     #boolMat[points[i,1],points[i2,2]:points[i,2]] .= true #There is an error here and i cannot for the life of me figure this out
                 end
