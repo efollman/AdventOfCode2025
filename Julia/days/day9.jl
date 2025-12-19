@@ -153,6 +153,8 @@ function day9()
                                 # wait a minute, if there is any trues other than the perimiter of the rectangle would tell you its not within green
                                 #this shouldnt have edge case either as some of the inner shape is garanteed to be within the rectangle?
                                 #only edge case would be a rectangle with no inner area, this would actually cause issues in this case test if all true?
+                                #^ this is actually a huge issue, though i think it could be solved with the earlier idea of spacing out coord compression
+                                #^could even be clever about it and posibly only space where neccessary, with points only space if touching, will be a pain to update the dictionary though.
                                 #=
 
                                 =#
