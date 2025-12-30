@@ -4,12 +4,13 @@
 #brute force even with some optimization is far too slow. Quarter second to do example case but tens of minutes to get through just the first machine in actual data.
 #linear algebra solution likely the best option (how to ensure no fractions and minimum presses?)
 
-
+using LinearAlgebra
+using RowEchelon
 function day10()
 
     function run()
         println("Running day10:")
-        @time val = day10main2("$inputDIR/day10.txt")
+        @time val = day10main("$inputExDIR/day10.txt")
         shouldbe = 33
         if val == shouldbe
             print("✓ Test Passed: $val == $shouldbe\n")
@@ -88,155 +89,39 @@ function day10()
         return numList
     end
 
-    function day10main2(filepath::String)
-        machines::Dict{UInt,Dict{String,Union{Vector{Bool},Vector{Vector{UInt}},Vector{UInt}}}} = parseFile(filepath)
-
-        minPress::UInt = 0
-        for i in keys(machines)
-            println("X")
-            minPress += minPressMachine2(machines[i])
-        end
-
-        return minPress
-
-    end
-
-    function minPressMachine2(machine::Dict{String,Union{Vector{Bool},Vector{Vector{UInt}},Vector{UInt}}})
-        joltage::Vector{UInt} = machine["Joltage"]
-        buttons::Vector{Vector{UInt}} = machine["Buttons"]
-
-        maxN::UInt = maximum(joltage)
-        maxComb::Vector{UInt} = fill(maxN, length(buttons))
-        currComb::Vector{UInt} = fill(0,length(buttons))
-        tmpJolt0::Vector{UInt} = fill(0,length(joltage))
-        tmpJolt::Vector{UInt} = copy(tmpJolt0)
-        minPresses::UInt = typemax(UInt)
-        currPresses::UInt = 0
-
-        while true
-            for (button,N) in zip(buttons,currComb)
-                tmpJolt = pressButton2(tmpJolt,button,N)
-                currPresses += N
-            end
-
-            if (tmpJolt == joltage) && (currPresses < minPresses)
-                minPresses = currPresses
-            end
-
-            if currComb == maxComb
-                break
-            end
-
-            if any(tmpJolt .> joltage)
-                currComb = nextnextCombo(currComb,maxN)
-            else
-                currComb = nextCombo(currComb,maxN)
-            end
-
-            tmpJolt = copy(tmpJolt0)
-            currPresses = 0
-
-        end
-
-        return minPresses   
-    end
-
-    function nextnextCombo(comb::Vector{UInt},maxN::UInt)
-        flag::Bool = false
-        flag2::Bool = false
-        for i in eachindex(comb)
-            if (comb[i] == 0) && (flag == false)
-                continue
-            elseif flag == false
-                flag = true
-                comb[i] = 0
-            elseif flag == true
-                if comb[i] < maxN
-                    comb[i] += 1
-                    flag2 = true
-                    break
-                else
-                    comb[i] = 0
-                end
-            end
-        end
-
-        if flag2 == false
-            comb = fill(maxN,length(comb))
-        end
-
-        return comb
-    end
-
-    function nextCombo(comb::Vector{UInt},maxN::UInt)
-        for i in eachindex(comb)
-            if comb[i] < maxN
-                comb[i] += 1
-                break
-            else
-                comb[i] = 0
-                continue
-            end
-        end
-        return comb
-    end
-
-    function pressButton2(jolt::Vector{UInt},button::Vector{UInt},N::UInt)
-        for i in button
-            jolt[i+1] += N #input 0 indexed
-        end
-        return jolt
-    end
-
     function day10main(filepath::String)
-        machines::Dict{UInt,Dict{String,Union{Vector{Bool},Vector{Vector{UInt}},Vector{UInt}}}} = parseFile(filepath)
-
-        minPress::UInt = 0
-        for i in keys(machines)
-            minPress += minPressMachine(machines[i])
+        #LA solution, convert buttons to sys of equations and RREF fix underdefined later
+        machinesType::Type = Dict{UInt,Dict{String,Union{Vector{Bool},Vector{Vector{UInt}},Vector{UInt}}}} 
+        machines::machinesType = parseFile(filepath)
+        minPresses::UInt = 0
+        for key in sort(collect(keys(machines)))
+            minPresses += minimumMachine(machines[key])
         end
-
-        return minPress
-
-    end
-
-    function minPressMachine(machine::Dict{String,Union{Vector{Bool},Vector{Vector{UInt}},Vector{UInt}}})
-        indicator::Vector{Bool} = machine["Indicator"]
-        buttons::Vector{Vector{UInt}} = machine["Buttons"]
         
-        currInd::Vector{Bool} = fill(false,length(indicator))
-        currComb::UInt = 0
-        currCombS::String = ""
-        currCombMax = 2^(length(buttons))-1
-        presses::UInt = 0
-        minPresses::UInt = typemax(UInt)
-
-        while currComb <= currCombMax
-            currCombS = bitstring(currComb)[end-(length(buttons))+1:end]
-            for chari in eachindex(currCombS)
-                if currCombS[chari] == '1'
-                    currInd = pressButton(currInd,buttons[chari])
-                    presses +=1
-                elseif currCombS[chari] == '0'
-                else
-                    @error "button combination logic fault"
-                end
-            end
-            if currInd == indicator && presses < minPresses
-                minPresses = presses
-            end
-            currComb += 1
-            presses = 0
-            currInd = fill(false,length(currInd))
-        end
-        return minPresses   
+        return minPresses
     end
 
-    function pressButton(ind::Vector{Bool},button::Vector{UInt})
-        for i in button
-            ind[i+1] = !ind[i+1] #input 0 indexed
+    function minimumMachine(machine::Dict{String,Union{Vector{Bool},Vector{Vector{UInt}},Vector{UInt}}})
+        buttons::Vector{Vector{UInt}} = machine["Buttons"]
+        joltage::Vector{UInt} = machine["Joltage"]
+        M::Matrix = fill(0,length(joltage),length(buttons))
+        for i in eachindex(buttons), j in buttons[i]
+            M[j+1,i] = 1
         end
-        return ind
+        
+        M = hcat(M,joltage)
+        println()
+        for row in eachrow(M)
+            println(row)
+        end
+        M = rref(M)
+        println()
+        for row in eachrow(M)
+            println(row)
+        end
+
+        return 0
+
     end
 
     run()
