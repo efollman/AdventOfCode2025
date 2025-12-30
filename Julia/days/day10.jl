@@ -1,13 +1,16 @@
 #Part 1 complete!
-#Part2 is yikes
 #speed improvment likely possible with using bitwise operators instead of parsing a binary representation as a string in the pressing sim.
+#Part2 is yikes 
+#brute force even with some optimization is far too slow. Quarter second to do example case but tens of minutes to get through just the first machine in actual data.
+#linear algebra solution likely the best option (how to ensure no fractions and minimum presses?)
+
 
 function day10()
 
     function run()
         println("Running day10:")
-        @time val = day10main("$inputDIR/day10.txt")
-        shouldbe = 486
+        @time val = day10main2("$inputDIR/day10.txt")
+        shouldbe = 33
         if val == shouldbe
             print("✓ Test Passed: $val == $shouldbe\n")
         else
@@ -83,6 +86,106 @@ function day10()
         end
 
         return numList
+    end
+
+    function day10main2(filepath::String)
+        machines::Dict{UInt,Dict{String,Union{Vector{Bool},Vector{Vector{UInt}},Vector{UInt}}}} = parseFile(filepath)
+
+        minPress::UInt = 0
+        for i in keys(machines)
+            println("X")
+            minPress += minPressMachine2(machines[i])
+        end
+
+        return minPress
+
+    end
+
+    function minPressMachine2(machine::Dict{String,Union{Vector{Bool},Vector{Vector{UInt}},Vector{UInt}}})
+        joltage::Vector{UInt} = machine["Joltage"]
+        buttons::Vector{Vector{UInt}} = machine["Buttons"]
+
+        maxN::UInt = maximum(joltage)
+        maxComb::Vector{UInt} = fill(maxN, length(buttons))
+        currComb::Vector{UInt} = fill(0,length(buttons))
+        tmpJolt0::Vector{UInt} = fill(0,length(joltage))
+        tmpJolt::Vector{UInt} = copy(tmpJolt0)
+        minPresses::UInt = typemax(UInt)
+        currPresses::UInt = 0
+
+        while true
+            for (button,N) in zip(buttons,currComb)
+                tmpJolt = pressButton2(tmpJolt,button,N)
+                currPresses += N
+            end
+
+            if (tmpJolt == joltage) && (currPresses < minPresses)
+                minPresses = currPresses
+            end
+
+            if currComb == maxComb
+                break
+            end
+
+            if any(tmpJolt .> joltage)
+                currComb = nextnextCombo(currComb,maxN)
+            else
+                currComb = nextCombo(currComb,maxN)
+            end
+
+            tmpJolt = copy(tmpJolt0)
+            currPresses = 0
+
+        end
+
+        return minPresses   
+    end
+
+    function nextnextCombo(comb::Vector{UInt},maxN::UInt)
+        flag::Bool = false
+        flag2::Bool = false
+        for i in eachindex(comb)
+            if (comb[i] == 0) && (flag == false)
+                continue
+            elseif flag == false
+                flag = true
+                comb[i] = 0
+            elseif flag == true
+                if comb[i] < maxN
+                    comb[i] += 1
+                    flag2 = true
+                    break
+                else
+                    comb[i] = 0
+                end
+            end
+        end
+
+        if flag2 == false
+            comb = fill(maxN,length(comb))
+        end
+
+        return comb
+    end
+
+    function nextCombo(comb::Vector{UInt},maxN::UInt)
+        for i in eachindex(comb)
+            if comb[i] < maxN
+                comb[i] += 1
+                break
+            else
+                comb[i] = 0
+                continue
+            end
+        end
+        return comb
+    end
+
+    function pressButton2(jolt::Vector{UInt},button::Vector{UInt},N::UInt)
+        for i in button
+            jolt[i+1] += N #input 0 indexed
+        end
+        return jolt
     end
 
     function day10main(filepath::String)
